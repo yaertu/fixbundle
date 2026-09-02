@@ -7,6 +7,7 @@ from pathlib import Path
 
 from . import __version__
 from .collect import build_bundle
+from .history import build_historical_bundle
 from .stack import detect_stacks
 
 
@@ -21,6 +22,7 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--timeout", type=int, default=180, help="Per-command timeout in seconds")
     p.add_argument("--max-files", type=int, default=250, help="Maximum project text/config files to snapshot")
     p.add_argument("--recommend", action="store_true", help="Detect stack and print recommended verification commands, then exit")
+    p.add_argument("--commit", metavar="REF", help="Capture an isolated historical Git snapshot without touching the current workspace")
     p.add_argument("--lang", choices=["auto", "tr", "en"], default="auto", help="CLI output language")
     p.add_argument("--version", action="version", version=f"fixbundle {__version__}")
     return p
@@ -58,13 +60,26 @@ def main(argv: list[str] | None = None) -> int:
     if args.recommend:
         return _recommend(root, lang)
     try:
-        zip_path, manifest = build_bundle(
-            root=root,
-            output_dir=Path(args.output),
-            commands=args.run,
-            timeout=max(1, args.timeout),
-            max_files=max(1, args.max_files),
-        )
+        output_dir = Path(args.output)
+        if args.commit:
+            zip_path, manifest = build_historical_bundle(
+                root=root,
+                commit_ref=args.commit,
+                output_dir=output_dir,
+                commands=args.run,
+                timeout=max(1, args.timeout),
+                max_files=max(1, args.max_files),
+            )
+        else:
+            if not output_dir.is_absolute():
+                output_dir = root / output_dir
+            zip_path, manifest = build_bundle(
+                root=root,
+                output_dir=output_dir,
+                commands=args.run,
+                timeout=max(1, args.timeout),
+                max_files=max(1, args.max_files),
+            )
     except Exception as exc:
         msg = f"fixbundle: paket oluşturulamadı: {exc}" if lang == "tr" else f"fixbundle: failed: {exc}"
         print(msg, file=sys.stderr)
