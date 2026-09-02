@@ -1,30 +1,41 @@
 # FixBundle Roadmap
 
-Roadmap, “daha fazla özellik” yerine **daha iyi hata kanıtı ve daha kısa çözüm süresi** hedefiyle sıralanır.
+Roadmap, “daha fazla özellik” yerine **daha iyi failure evidence ve daha kısa çözüm süresi** hedefiyle sıralanır.
 
-## v0.3.0 — Temporal Debugging ✅
-**Sonuç:** “Bug eski commit'te oldu” durumunda AI'ya bugünkü kod yerine olay anındaki kodu ver.
+## v0.3.0 — Temporal Evidence ✅
+**Sonuç:** bug eski commit'te olduysa olay anındaki kodu güvenli worktree içinde yakala.
 - `--commit <sha/ref>`
 - detached temporary `git worktree`
 - incident vs current commit identity
 - dirty workspace preservation
-- cleanup/invariant testleri
-- gerçek demo ve README GIF kanıtı
+- gerçek historical demo
 
-## v0.4.0 — GitHub Native
-**Sonuç:** failed Actions job → tek komut/aksiyonla paylaşılabilir evidence.
-- workflow/run/job/commit identity
-- failed job log capture
-- GitHub issue-ready handoff Markdown
-- artifact-safe bundle output
-- fork/PR secret-safety sınırları
+## v0.4.0 — GitHub Native ✅
+**Sonuç:** failed GitHub Actions run → agent/vendor bağımsız portable evidence ZIP.
+- `fixbundle github --repo owner/repo --run <id>`
+- workflow/run/job/step/commit identity
+- yalnız failed-job log capture
+- bounded patch + workflow config
+- redaction + checksums + AI handoff
+- no local checkout
+- bearer-token redirect hardening
+- gerçek public failed-run ile live verification
 
-## v0.5.0 — Production Evidence
-**Sonuç:** “sadece production'da oldu” vakasında bounded runtime kanıtı.
-- Sentry event adapter
-- structured JSON/log ingestion
-- time-window capture
-- configurable privacy allow/deny rules
+Kanıt: `docs/evidence/V04_LIVE_GITHUB.md`.
+
+## v0.5.0 — Production Evidence Import
+**Sonuç:** “sadece production'da oldu” vakasını tek observability vendor'ına kilitlemeden FixBundle evidence protokolüne al.
+
+Araştırma kararı: ilk giriş **OpenTelemetry Protocol File Exporter JSONL** olacak. Böylece local/offline, credential gerektirmeyen ve vendor-neutral bir production evidence yolu elde edilir. Sentry adapter ikinci katmandır; Sentry'nin kendi API'si event'i zaten LLM-friendly formatta verebildiği için yalnız aynı işi tekrar eden wrapper yazılmayacak.
+
+Plan:
+- OTLP JSON/JSONL logs + traces ingestion
+- `traceId` / `spanId` correlation
+- `service.name`, environment/release/deployment attributes
+- stable `exception.type`, `exception.message`, `exception.stacktrace` normalization
+- bounded incident/time window
+- privacy allow/deny policy
+- optional Sentry event/issue adapter when it adds portability/correlation value
 
 ## v0.6.0 — Regression Fingerprints
 **Sonuç:** “önceden çalışıyordu, şimdi neden bozuk?” sorusunu bundle-vs-bundle karşılaştır.
@@ -34,8 +45,8 @@ Roadmap, “daha fazla özellik” yerine **daha iyi hata kanıtı ve daha kısa
 - changed-file correlation
 
 ## v0.7.0 — Agent Handoff
-- Codex / Claude Code / Cursor için tool-specific handoff adapters
-- ortak kanıtı vendor-specific talimatlardan ayıran export profilleri
+- Codex / Claude Code / Cursor için tool-specific export profiles
+- ortak kanıtı vendor-specific talimatlardan ayırma
 - prompt-injection-safe evidence boundaries
 
 ## v1.0 — Stable Evidence Protocol
@@ -46,4 +57,4 @@ Roadmap, “daha fazla özellik” yerine **daha iyi hata kanıtı ve daha kısa
 - compatibility contract
 
 ## Ticari katman ilkesi
-Local core kullanılabilir ve account gerektirmeyen durumda kalır. Ücretli değer ancak gerçek kullanım kanıtlandıktan sonra hosted integrations, encrypted sharing, team policy/history ve collaboration kolaylığına bağlanır. Core evidence üretimi paywall arkasına taşınmaz.
+Local core account gerektirmeyen durumda kalır. Ücretli değer ancak gerçek kullanım kanıtlandıktan sonra hosted integrations, encrypted sharing, team policy/history ve collaboration kolaylığına bağlanır. Core evidence üretimi paywall arkasına taşınmaz.
