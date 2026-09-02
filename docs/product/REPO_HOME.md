@@ -43,10 +43,17 @@ Use a 1280×640 visual that says:
 Do not include fabricated star/download counters.
 
 ## Last audited live state — 2026-09-02
-GitHub API previously confirmed:
-- description: `Package a broken repo, failed command, or historical Git commit into a redacted AI-ready debugging bundle.`
-- topics: `ai-coding-assistant`, `ai-debugging`, `bug-report`, `claude-code`, `codex`, `cursor`, `developer-tools`, `devtools`, `diagnostics`, `git`, `llm`, `production-debugging`, `reproducibility`, `support-bundle`, `temporal-debugging`
+GitHub API confirmed:
+- description: `Package failures into redacted evidence bundles and compare what changed across local, CI, and OpenTelemetry incidents.`
 - stars: 0
 - forks: 0
+- live topics: `ai-coding-assistant`, `ai-debugging`, `bug-report`, `claude-code`, `codex`, `cursor`, `developer-tools`, `devtools`, `diagnostics`, `github-action`, `github-actions`, `incident-response`, `llm`, `observability`, `opentelemetry`, `production-debugging`, `regression-testing`, `reproducibility`, `support-bundle`, `temporal-debugging`
 
-v0.5 added OpenTelemetry and v0.6 adds evidence comparison, so target metadata is ahead of the last confirmed live About state. The connected repository tools currently do not expose About/Topics mutation. Never claim target metadata is live until GitHub API confirms it after the maintainer updates the repository UI.
+### Metadata delta
+The About description is now synchronized with the v0.6 target.
+
+The live topic set is one slot away from the documented target:
+- remove obsolete singular topic: `github-action`
+- add missing target topic: `git`
+
+The connected repository tools currently do not expose About/Topics mutation. Never claim that topic delta is fixed until GitHub API confirms the live state after a maintainer UI update.
