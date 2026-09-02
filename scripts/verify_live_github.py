@@ -8,7 +8,8 @@ from pathlib import Path
 
 EXPECTED_RUN = 33587184675
 EXPECTED_REPO = "yaertu/fixbundle"
-EXPECTED_FAILURE_MARKERS = ("UnicodeEncodeError", "cp1252", "Historical demo")
+EXPECTED_LOG_MARKERS = ("UnicodeEncodeError", "cp1252")
+EXPECTED_FAILED_STEP = "Historical demo"
 
 
 def main() -> int:
@@ -43,8 +44,18 @@ def main() -> int:
         assert manifest["failed_jobs"], "expected at least one failed job"
         assert manifest["log_files"], "expected failed job logs"
 
+        jobs = json.loads(zf.read("github/jobs.json"))
+        failed_steps = {
+            step.get("name")
+            for job in jobs
+            if job.get("conclusion") == "failure"
+            for step in job.get("steps", [])
+            if step.get("conclusion") == "failure"
+        }
+        assert EXPECTED_FAILED_STEP in failed_steps, f"missing failed step identity: {EXPECTED_FAILED_STEP}"
+
         combined_logs = "\n".join(zf.read(name).decode("utf-8", "replace") for name in manifest["log_files"])
-        for marker in EXPECTED_FAILURE_MARKERS:
+        for marker in EXPECTED_LOG_MARKERS:
             assert marker in combined_logs, f"missing real failure marker: {marker}"
         assert "AUTHORIZATION: basic ***" in combined_logs
 
@@ -60,7 +71,8 @@ def main() -> int:
     print(f"PASS live_run={EXPECTED_RUN}")
     print(f"PASS failed_jobs={len(manifest['failed_jobs'])}")
     print(f"PASS log_files={len(manifest['log_files'])}")
-    print("PASS real_failure=UnicodeEncodeError/cp1252/Historical demo")
+    print(f"PASS failed_step={EXPECTED_FAILED_STEP}")
+    print("PASS real_failure=UnicodeEncodeError/cp1252")
     print(f"PASS checksums={checked}")
     print("PASS token_not_serialized")
     return 0
