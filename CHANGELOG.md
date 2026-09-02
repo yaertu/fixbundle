@@ -1,28 +1,32 @@
 # Changelog
 
-## 0.4.0 — 2026-09-02 (main)
+## 0.4.0 — 2026-09-02
 
 ### Added
-- `fixbundle github --repo owner/repo --run <id>` ile completed failed GitHub Actions run'ını local checkout olmadan kanıt paketine dönüştüren read-only capture yolu.
+- `fixbundle github --repo owner/repo --run <id>` ile completed failed GitHub Actions run'ını local checkout olmadan evidence ZIP'e dönüştüren read-only capture yolu.
 - Exact repository / workflow / run / commit / job / step identity normalization.
 - Yalnız failed job loglarını bounded + redacted olarak `github/jobs/*.log` içine alma.
 - Olay commit'inin bounded patch context'ini `github/commit.json` içine alma.
 - Olay anındaki workflow config erişilebiliyorsa bundle'a ekleme.
 - GitHub failure'a özel `AI_HANDOFF.md`, manifest ve SHA-256 integrity listesi.
-- Recorded/synthetic API fixture ile remote capture regression testleri.
+- Recorded/synthetic API fixture testleri ve gerçek public failed-run verifier'ı.
 
-### Safety
+### Safety / fixes
 - `GITHUB_TOKEN` hiçbir output dosyasına serialize edilmez.
+- GitHub job-log endpoint'inin signed blob redirect'inde Bearer Authorization header'ı redirect target'a taşınmaz.
+- Redirect davranışını yerel HTTP server ile doğrulayan regression testi eklendi.
 - Otomatik upload yoktur.
 - `--repo` strict `owner/repo` formatıyla doğrulanır.
 - Yalnız completed + failure run kabul edilir; belirsiz/in-progress run fail-closed davranır.
-- Failed-job logları karakter guard ile sınırlandırılır ve mevcut secret redactor'dan geçirilir.
-- Local bundle `system.json` paket sürümünü hard-code etmek yerine `__version__` üzerinden alır.
+- Failed-job logları karakter guard ile sınırlandırılır ve secret redactor'dan geçirilir.
+- Local bundle `system.json` paket sürümünü `__version__` üzerinden alır.
 
-### Verified so far
-- Yeni GitHub Native fixture testleri CI matrisinde çalışıyor ve gözlenen Ubuntu/Windows job'larında PASS.
-- v0.3 historical + CLI regression testleri korunuyor.
-- **Release gate açık:** gerçek public failed Actions run'ın FixBundle CLI ile capture edilip README kanıtına bağlanması henüz tamamlanmadı. Issue #2 bu gate kapanana kadar açık kalır.
+### Verified
+- Kaynak incident: GitHub Actions run `33587184675` / run #41.
+- Gerçek failure: üç Windows job, failed step `Historical demo`, log marker'ları `UnicodeEncodeError` + `cp1252`.
+- Live proof: GitHub Actions run `33589138174` / run #63, commit `d15385a7f9ecd0a0dbd1c67b0caad6f7aa21bb95`.
+- Live verifier: 3 failed job, 3 real log, failed-step identity, 9 checksum ve token-not-serialized gate'leri PASS.
+- Aynı proof run'da Ubuntu/Windows/macOS × Python 3.10/3.12/3.13 platform matrisi 9/9 PASS ve ayrı live GitHub evidence job PASS.
 
 ## 0.3.0 — 2026-09-02
 
@@ -42,27 +46,14 @@
 - CLI stdout/stderr UTF-8 + replacement fallback ile yapılandırılarak legacy Windows code-page çökmesi giderildi.
 
 ### Verified
-- GitHub Actions run #43: **9/9 job PASS**.
 - Ubuntu, Windows ve macOS üzerinde Python 3.10 / 3.12 / 3.13 doğrulandı.
-- `pytest -q`: **5 passed**.
-- Historical demo **5/5 invariant PASS**.
-- Demo, eski kaynakta gerçek `AssertionError` yakaladı ve current HEAD/dirty workspace'i korudu.
+- Historical demo 5/5 invariant PASS.
 
 ## 0.2.0 — 2026-09-02
-
-### Added
 - Node.js, Python, Rust, .NET, Go ve Java stack algılama.
-- `fixbundle --recommend` ile güvenli doğrulama komutu önerileri.
-- Türkçe/İngilizce CLI (`--lang auto|tr|en`).
-- `git/head.txt` ve `git/branch.txt` commit identity kanıtı.
-- `stack.json` bundle kanıtı.
-- URL credentials, JWT ve ek secret pattern redaction.
-- Proje ve home absolute path masking.
-
-### Hardened
-- `.fixbundle` recursion dışlaması.
-- `.npmrc`, `.pypirc`, `secrets.json` secret-file dışlaması.
-- Büyük text/diff/log capture'ları için 200k karakter guard.
+- `fixbundle --recommend` ile doğrulama komutu önerileri.
+- Türkçe/İngilizce CLI.
+- Git identity, stack evidence ve genişletilmiş redaction/path masking.
 
 ## 0.1.0 — 2026-09-02
 - İlk local AI-ready diagnostic bundle prototipi.

@@ -2,10 +2,10 @@
 
 Keep this file synchronized with the GitHub repository home page after every positioning/release change.
 
-## About description
-`Package a broken repo, failed command, or historical Git commit into a redacted AI-ready debugging bundle.`
+## Target About description
+`Package local failures, historical Git bugs, and failed GitHub Actions runs into redacted AI-ready evidence bundles.`
 
-## Topics
+## Target Topics
 Use these discovery topics, in this order:
 
 1. `ai-debugging`
@@ -17,31 +17,32 @@ Use these discovery topics, in this order:
 7. `diagnostics`
 8. `bug-report`
 9. `ai-coding-assistant`
-10. `codex`
-11. `claude-code`
-12. `cursor`
-13. `reproducibility`
-14. `git`
-15. `llm`
+10. `github-actions`
+11. `codex`
+12. `claude-code`
+13. `cursor`
+14. `reproducibility`
+15. `git`
+16. `llm`
 
-These deliberately describe both the outcome and the discovery ecosystem. Do not use unrelated trending tags.
+Do not use unrelated trending tags.
 
 ## Homepage
-For now use the repository URL. Add a dedicated landing page only after it provides a measurable advantage over the README demo.
+For now use the repository URL. Add a dedicated landing page only after it provides a measurable advantage over the README/live demo.
 
 ## Social preview
 Use a 1280×640 visual that says:
 - FixBundle
-- Failure → redacted evidence ZIP
-- Local-first · Git-aware · portable across AI tools
+- Local / Historical / CI Failure → Redacted Evidence ZIP
+- Portable across AI tools and human support
 
 Do not include fabricated star/download counters.
 
 ## Last audited live state — 2026-09-02
-GitHub API showed:
-- description: `One command turns a broken project into an AI-ready debugging bundle.`
-- topics: none
+GitHub API showed the maintainer's manual metadata update is live:
+- description: `Package a broken repo, failed command, or historical Git commit into a redacted AI-ready debugging bundle.`
+- topics: `ai-coding-assistant`, `ai-debugging`, `bug-report`, `claude-code`, `codex`, `cursor`, `developer-tools`, `devtools`, `diagnostics`, `git`, `llm`, `production-debugging`, `reproducibility`, `support-bundle`, `temporal-debugging`
 - stars: 0
 - forks: 0
 
-The connector available to the steward can edit repository files but does not expose repository About/Topics mutation. Until that changes, the maintainer must copy the description/topics above into the GitHub About editor manually. This file is the source of truth for that one UI-only step.
+v0.4 adds GitHub Actions as a proven input, so the target description/topics above are now one release ahead of the live About metadata. The connector can edit repository files but does not currently expose About/Topics mutation. Never claim the target metadata is live until GitHub API confirms it after the maintainer changes the UI.
