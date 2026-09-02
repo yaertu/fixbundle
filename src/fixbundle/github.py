@@ -11,6 +11,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from . import __version__
 from .redact import redact_text
 
 API_ROOT = "https://api.github.com"
@@ -32,7 +33,7 @@ class GitHubAPI:
         url = path if path.startswith("http") else f"{self.api_root}{path}"
         headers = {
             "Accept": accept,
-            "User-Agent": "fixbundle/0.4",
+            "User-Agent": f"fixbundle/{__version__}",
             "X-GitHub-Api-Version": "2022-11-28",
         }
         req = urllib.request.Request(url, headers=headers)
@@ -252,7 +253,7 @@ def build_github_bundle(
 
     manifest = {
         "schema": "fixbundle/0.4",
-        "fixbundle_version": "0.4.0",
+        "fixbundle_version": __version__,
         "capture_mode": "github-actions-failure",
         "repository": repo,
         "run_id": run_id,
