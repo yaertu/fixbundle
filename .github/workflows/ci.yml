@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+permissions:
+  actions: read
+  contents: read
+
 jobs:
   test:
     name: ${{ matrix.os }} / Python ${{ matrix.python-version }}
@@ -30,3 +34,22 @@ jobs:
           fixbundle . --recommend --lang en
       - name: Historical demo
         run: python scripts/demo.py
+
+  live-github-evidence:
+    name: Live GitHub failure evidence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install FixBundle
+        run: python -m pip install -e .
+      - name: Capture real failed Actions run
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          rm -rf .fixbundle-live
+          fixbundle github --repo yaertu/fixbundle --run 33587184675 --output .fixbundle-live --lang en
+      - name: Verify portable evidence ZIP
+        run: python scripts/verify_live_github.py .fixbundle-live
