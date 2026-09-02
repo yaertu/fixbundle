@@ -11,12 +11,14 @@ FixBundle does not use vanity claims before there are users. This file records t
 - public repository: yes
 - public v0.6.0 release: published
 - open non-PR issues: 1 (`#10`, maintainer distribution gate)
-- open pull requests: 1 (`#11`, docs-only market validation gate)
+- open pull requests: 0
 - PyPI: not yet published
 - unrelated-user feedback: none yet
 - unrelated real captures: 0
 - retained external baselines: 0
 - repeat-use compares: 0
+
+Latest main CI after the validation-gate merge: run `33594019142`, 10/10 jobs PASS, including the `Live GitHub failure evidence` invariant.
 
 ## Why the scoreboard changed
 
