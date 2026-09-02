@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fixbundle"
-version = "0.3.0"
-description = "One command turns a broken project into an AI-ready debugging bundle."
+version = "0.4.0"
+description = "Package a broken repo, failed command, historical Git commit, or failed GitHub Actions run into a redacted AI-ready debugging bundle."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [{name = "yaaertu codeR"}]
-keywords = ["ai", "debugging", "bug-report", "diagnostics", "codex", "claude-code", "cursor", "reproducibility", "support-bundle", "developer-tools"]
+keywords = ["ai", "debugging", "bug-report", "diagnostics", "github-actions", "codex", "claude-code", "cursor", "reproducibility", "support-bundle", "developer-tools"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
