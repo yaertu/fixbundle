@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fixbundle"
-version = "0.5.0"
-description = "Package local, historical, CI, and OpenTelemetry production failures into redacted portable debugging evidence."
+version = "0.6.0"
+description = "Package failures into redacted evidence bundles and compare what changed across local, CI, and production incidents."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [{name = "yaaertu codeR"}]
-keywords = ["ai", "debugging", "opentelemetry", "otlp", "observability", "bug-report", "diagnostics", "github-actions", "codex", "claude-code", "cursor", "reproducibility", "support-bundle", "developer-tools"]
+keywords = ["ai", "debugging", "opentelemetry", "otlp", "observability", "regression", "incident-response", "bug-report", "diagnostics", "github-actions", "codex", "claude-code", "cursor", "reproducibility", "support-bundle", "developer-tools"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",

@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.6.0 — 2026-09-02
+
+### Added
+- `fixbundle compare baseline.zip incident.zip` deterministic evidence comparison.
+- `--format json` machine-readable compare output.
+- `fixbundle/0.3`, `fixbundle/0.4` ve `fixbundle/0.5` input normalization.
+- Fixed-order comparison for capture identity, project/repository/workflow/run, Git commit + changed files, failed commands/jobs/steps, OTLP exceptions/services/traces and runtime identity.
+- `changed`, `added`, `removed`, `unavailable` detailed statuses + `unchanged` summary count.
+- `scripts/demo_compare.py`: iki gerçek OTLP FixBundle artifact'ı üretip service version / exception / trace drift'ini doğrulayan reproducible demo.
+- `docs/product/V06_COMPARE.md`: compare integrity, normalization and semantic contract.
+
+### Safety / hardening
+- Compare, evidence interpretation'dan önce her iki bundle'ın `SHA256SUMS.txt` dosyasını strict doğrular.
+- Exact checksum coverage zorunlu; missing/extra/malformed entries ve checksum mismatch fail-closed.
+- Absolute ZIP path, Windows drive path, `..`, backslash, NUL, duplicate members, symlink ve encrypted members reddedilir.
+- ZIP member count, per-member byte ve total uncompressed byte bounds uygulanır.
+- Input ZIP hiçbir zaman extract edilmez veya mutate edilmez.
+- Unknown FixBundle schema fail-closed davranır.
+- Compare core LLM/network gerektirmez ve causal root-cause iddiası üretmez.
+
+### Verification
+- `tests/test_compare.py`: local↔local, GitHub↔GitHub, GitHub↔OTLP, checksum tamper, path traversal, duplicate member, symlink ve unsupported-schema regression coverage.
+- `tests/test_compare_cli.py`: real CLI JSON output + invalid ZIP fail-closed subprocess coverage.
+- `scripts/demo_compare.py`: real v0.5 bundle generation → integrity validation → deterministic compare.
+- GitHub Actions PR run `33591450004`: Ubuntu + Windows + macOS × Python 3.10 / 3.12 / 3.13 ve Live GitHub evidence job PASS; compare demo platform matrix içinde PASS.
+- Existing historical, OTLP production ve live GitHub evidence gates korunur.
+
 ## 0.5.0 — 2026-09-02
 
 ### Added
