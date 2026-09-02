@@ -21,7 +21,7 @@
 ## ⚡ 30 saniyelik kullanım
 
 ```bash
-pipx install fixbundle
+pipx install git+https://github.com/yaertu/fixbundle.git
 cd bozuk-proje
 fixbundle . --lang tr --run "pytest -q" --run "python -m build"
 ```
@@ -118,6 +118,7 @@ Yerel v0.2 doğrulamasında **3/3 test geçti**, FixBundle kendi repository'sini
 **One command turns a broken project into an AI-ready debugging bundle.** FixBundle captures Git state, exact commit identity, command failures, stack/environment evidence and relevant source/config snapshots; then redacts common secrets and absolute user paths before producing a checksum-verified ZIP. Local-first, no cloud account required.
 
 ```bash
+pipx install git+https://github.com/yaertu/fixbundle.git
 fixbundle . --run "npm test" --run "npm run build"
 ```
 
