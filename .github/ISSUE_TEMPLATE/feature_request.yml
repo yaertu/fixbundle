@@ -1,0 +1,26 @@
+name: Özellik isteği / Feature request
+description: Yeni bir evidence adapter veya workflow sonucu öner
+title: "[feature] "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: "Özellik adı yerine önce tekrar eden kullanıcı acısını ve beklenen sonucu anlat."
+  - type: textarea
+    id: pain
+    attributes:
+      label: Bugün hangi debugging handoff işi can sıkıyor?
+      description: Elle topladığın log, commit, CI, ortam veya üretim kanıtını tarif et.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: FixBundle bunun yerine hangi sonucu üretmeli?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Örnek / kanıt
+      description: Hassas veri içermeyen sentetik örnek veya public bağlantı ekleyebilirsin.
