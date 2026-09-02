@@ -23,37 +23,44 @@ Roadmap, “daha fazla özellik” yerine **daha iyi failure evidence ve daha k�
 Kanıt: `docs/evidence/V04_LIVE_GITHUB.md`.
 
 ## v0.5.0 — Production Evidence Import ✅
-**Sonuç:** “sadece production'da oldu” olayını tek observability vendor'ına kilitlemeden FixBundle evidence protokolüne al.
-
-İlk core input: **OpenTelemetry Protocol File Exporter JSON Lines**.
-- `fixbundle otlp --logs ... [--traces ...]`
-- exact `traceId` / `spanId` correlation
-- `service.name`, service version, deployment environment/id evidence
-- stable `exception.type`, `exception.message`, `exception.stacktrace`
+**Sonuç:** “sadece production'da oldu” olayını tek observability vendor'ına kilitlemeden evidence protocolüne al.
+- OpenTelemetry Protocol File Exporter JSON/JSONL
+- exact trace/span correlation
+- service/version/environment/deployment identity
+- stable exception evidence
 - explicit trace/time-window selection
-- selected/omitted provenance
-- input byte + record guards
-- redaction + checksums + AI handoff
-- local/offline, account'suz, auto-upload yok
-- reproducible `scripts/demo_otlp.py`
+- bounded input + redaction + checksums
+- local/offline capture
+- reproducible OTLP demo
 
-Sentry adapter ancak portable normalization veya cross-source correlation gibi ek değer sağladığında gelecek; Sentry'nin mevcut LLM/event API'sini sırf wrapper olsun diye tekrar etmeyeceğiz.
+## v0.6.0 — Cross-source Evidence Compare ✅
+**Sonuç:** iki FixBundle ZIP'i ver, integrity-checked deterministic “ne değişti?” raporu al.
+- `fixbundle compare baseline.zip incident.zip`
+- `--format json` machine-readable output
+- input `SHA256SUMS.txt` doğrulaması interpretation'dan önce
+- path traversal, duplicate member, symlink, malformed/tampered ZIP fail-closed
+- `fixbundle/0.3`, `0.4`, `0.5` normalization
+- local↔local, GitHub↔GitHub, GitHub↔OTLP comparison tests
+- commit / changed-file / failed-command / job / step / exception / service / trace / runtime drift
+- deterministic `changed`, `added`, `removed`, `unavailable` semantics
+- network/LLM yok, input extraction/mutation yok
+- real FixBundle OTLP baseline→incident compare demo CI gate
 
-## v0.6.0 — Regression Fingerprints
-**Sonuç:** “önceden çalışıyordu, şimdi neden bozuk?” sorusunu evidence-vs-evidence karşılaştır.
-- normalized failure signature
-- exception/trace drift
-- dependency/environment drift
-- changed-file/release correlation
-- deterministic before/after report
+Tasarım/güvenlik: `docs/product/V06_COMPARE.md`.
+
+## Distribution gate
+v0.7'ye geçmeden önce repeat-use hipotezini sınayacağız. Hedef daha fazla commit değil, gerçek bir maintainer'ın FixBundle artifact'ını saklayıp sonraki incident'ta tekrar kullanması.
+
+Detay: `docs/product/NEXT.md`.
 
 ## v0.7.0 — Agent Handoff
-- Codex / Claude Code / Cursor için tool-specific export profiles
-- ortak kanıtı vendor-specific talimatlardan ayırma
+- Codex / Claude Code / Cursor tool-specific export profiles
+- ortak kanıtı vendor-specific instruction katmanından ayırma
 - prompt-injection-safe evidence boundaries
+- yalnız gerçek handoff friction kanıtlanırsa
 
 ## v0.8.0 — Source Adapters
-Demand kanıtlanırsa Sentry ve diğer production source adapter'ları ortak evidence protocolüne bağla. Adapter sayısı başarı metriği değildir; aynı problemi tekrar eden wrapper eklenmez.
+Demand kanıtlanırsa Sentry ve diğer production source adapter'larını ortak evidence protocolüne bağla. Adapter sayısı başarı metriği değildir; mevcut vendor özelliğini tekrarlayan wrapper eklenmez.
 
 ## v1.0 — Stable Evidence Protocol
 - versioned public schema
