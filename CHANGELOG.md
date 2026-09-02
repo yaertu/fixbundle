@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.4.0 — 2026-09-02 (main)
+
+### Added
+- `fixbundle github --repo owner/repo --run <id>` ile completed failed GitHub Actions run'ını local checkout olmadan kanıt paketine dönüştüren read-only capture yolu.
+- Exact repository / workflow / run / commit / job / step identity normalization.
+- Yalnız failed job loglarını bounded + redacted olarak `github/jobs/*.log` içine alma.
+- Olay commit'inin bounded patch context'ini `github/commit.json` içine alma.
+- Olay anındaki workflow config erişilebiliyorsa bundle'a ekleme.
+- GitHub failure'a özel `AI_HANDOFF.md`, manifest ve SHA-256 integrity listesi.
+- Recorded/synthetic API fixture ile remote capture regression testleri.
+
+### Safety
+- `GITHUB_TOKEN` hiçbir output dosyasına serialize edilmez.
+- Otomatik upload yoktur.
+- `--repo` strict `owner/repo` formatıyla doğrulanır.
+- Yalnız completed + failure run kabul edilir; belirsiz/in-progress run fail-closed davranır.
+- Failed-job logları karakter guard ile sınırlandırılır ve mevcut secret redactor'dan geçirilir.
+- Local bundle `system.json` paket sürümünü hard-code etmek yerine `__version__` üzerinden alır.
+
+### Verified so far
+- Yeni GitHub Native fixture testleri CI matrisinde çalışıyor ve gözlenen Ubuntu/Windows job'larında PASS.
+- v0.3 historical + CLI regression testleri korunuyor.
+- **Release gate açık:** gerçek public failed Actions run'ın FixBundle CLI ile capture edilip README kanıtına bağlanması henüz tamamlanmadı. Issue #2 bu gate kapanana kadar açık kalır.
+
 ## 0.3.0 — 2026-09-02
 
 ### Added
