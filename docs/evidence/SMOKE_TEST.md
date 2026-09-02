@@ -1,33 +1,46 @@
-# v0.2.0 doğrulama kanıtı
+# v0.3.0 doğrulama kanıtı
 
-Bu belge, README'deki çalışabilirlik iddialarının kısa ve yeniden üretilebilir kanıtıdır.
+README'deki davranış iddialarını yeniden üretmek için gereken kısa kanıt zinciri.
 
-## Yerel test sonucu
+## 1. Unit / integration tests
 
 ```text
 $ python -m pytest -q
-...                                                                      [100%]
-3 passed in 1.58s
+....                                                                     [100%]
+4 passed
 ```
 
-## Gerçek self-capture
+Kapsanan ana davranışlar:
+- bundle üretimi ve secret/path redaction
+- stack detection
+- provider/token redaction
+- historical commit capture + dirty workspace preservation
+
+## 2. Historical incident demo
 
 ```text
-$ fixbundle . --lang tr --run "python -m pytest -q"
-FixBundle hazır ✅
-  Dosya: 24
-  Komut: 1
-  Gizleme/yol maskeleme: 7
+$ python scripts/demo.py
+FixBundle historical demo
+PASS  incident_commit_matches
+PASS  current_head_preserved
+PASS  dirty_workspace_preserved
+PASS  old_buggy_source_captured
+PASS  real_failure_captured
 ```
 
-Üretilen bundle içerisinde `AI_HANDOFF.md`, `manifest.json`, `stack.json`, `system.json`, `tree.txt`, `git/head.txt`, `git/status.txt`, `git/diff.patch`, komut logları ve `SHA256SUMS.txt` bulunur.
+Demo iki commit üretir. İlk commit bilinçli olarak bozuk, ikinci commit düzeltilmiştir. Ayrıca current workspace'e commitlenmemiş `notes.txt` eklenir. FixBundle eski commit'i detached worktree içinde çalıştırır ve bundle içindeki `commands/01.log` dosyasına gerçek `AssertionError` koyar. Demo sonunda current HEAD ve `notes.txt` korunmuş olmalıdır.
 
-## Wheel
+## 3. CI
 
-`fixbundle-0.2.0-py3-none-any.whl` yerel olarak `pip wheel --no-build-isolation` ile başarıyla üretildi.
+`.github/workflows/ci.yml` aşağıdaki matrisi çalıştırır:
+- ubuntu-latest / windows-latest / macos-latest
+- Python 3.10 / 3.12 / 3.13
+- pytest
+- CLI smoke
+- historical demo
 
-## GitHub Actions matrix
+GitHub Actions sonucu README'deki CI badge üzerinden görülebilir.
 
-Cross-platform doğrulama artık tamamlandı: **Windows + macOS + Ubuntu × Python 3.10/3.12/3.13 = 9/9 job PASS.** Her job install, `pytest -q`, `fixbundle --version` ve `fixbundle . --recommend --lang en` smoke adımlarını geçti.
+## 4. Kanıt sınırı
 
-Ayrıntılı matris: [CI_MATRIX.md](CI_MATRIX.md).
+Bu belge yalnız doğrulanmış test/demo sonuçlarını kaydeder. Star, download, performans veya “AI daha iyi çözer” gibi ölçülmemiş iddialar kanıt sayılmaz.
