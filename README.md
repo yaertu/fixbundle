@@ -21,7 +21,7 @@
 ## 🎬 Gerçek çalışma demosu
 
 <p align="center">
-  <img src="docs/demo/fixbundle-v0.3-demo.gif" width="100%" alt="FixBundle v0.3 historical debugging demo">
+  <img src="docs/demo/fixbundle-v0.3-demo.svg" width="100%" alt="FixBundle v0.3 historical debugging demo">
 </p>
 
 Demoda hata **eski bir commit'te**, güncel branch ise düzeltilmiş durumda. Çalışma alanında ayrıca commitlenmemiş bir dosya var. `--commit` eski commit'i geçici Git worktree içinde çalıştırıyor, gerçek `AssertionError` çıktısını bundle'a koyuyor ve güncel çalışma alanını değiştirmiyor.
