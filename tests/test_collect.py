@@ -16,7 +16,7 @@ def test_build_bundle_excludes_env_and_creates_handoff(tmp_path: Path):
     zip_path, manifest = build_bundle(project, tmp_path / "out", ["python app.py"], timeout=10)
     assert zip_path.exists()
     assert manifest["redactions"] >= 1
-    assert manifest["schema"] == "fixbundle/0.2"
+    assert manifest["schema"] == "fixbundle/0.3"
     assert manifest["stacks"][0]["stack"] == "python"
     with zipfile.ZipFile(zip_path) as zf:
         names = set(zf.namelist())
@@ -29,4 +29,4 @@ def test_build_bundle_excludes_env_and_creates_handoff(tmp_path: Path):
         content = zf.read("project/error.log").decode()
         assert "hunter2" not in content
         data = json.loads(zf.read("manifest.json"))
-        assert data["schema"] == "fixbundle/0.2"
+        assert data["schema"] == "fixbundle/0.3"
