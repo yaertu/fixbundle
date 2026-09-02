@@ -10,7 +10,8 @@ FixBundle does not use vanity claims before there are users. This file records t
 - forks: 0
 - public repository: yes
 - public v0.6.0 release: published
-- open issues: 2
+- open non-PR issues: 1 (`#10`, maintainer distribution gate)
+- open pull requests: 1 (`#11`, docs-only market validation gate)
 - PyPI: not yet published
 - unrelated-user feedback: none yet
 - unrelated real captures: 0
