@@ -9,67 +9,102 @@
 <p align="center">
   <a href="https://github.com/yaertu/fixbundle/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/yaertu/fixbundle/actions/workflows/ci.yml/badge.svg"></a>
   <img alt="Python 3.10+" src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white">
-  <img alt="Version 0.4.0" src="https://img.shields.io/badge/main-0.4.0-8B5CF6">
-  <img alt="Platform matrix" src="https://img.shields.io/badge/platform_matrix-9%2F9_pass-22C55E">
-  <img alt="Live evidence" src="https://img.shields.io/badge/live_GitHub_evidence-pass-22C55E">
+  <img alt="Version 0.5.0" src="https://img.shields.io/badge/version-0.5.0-8B5CF6">
+  <img alt="Local first" src="https://img.shields.io/badge/privacy-local--first-0EA5E9">
   <img alt="License MIT" src="https://img.shields.io/badge/license-MIT-22C55E">
 </p>
 
 <p align="center"><img src="assets/hero.svg" width="100%" alt="FixBundle: failure to portable debugging evidence"></p>
 
-Bir hata localde, eski bir commit'te veya GitHub Actions'ta yaşanmış olabilir. FixBundle failure output, exact Git identity, job/step bilgisi, diff/config bağlamı ve ilgili kaynak parçalarını toplar; yaygın secret/path kalıplarını maskeler; checksum'lı tek ZIP üretir. Aynı paketi Codex'e, Claude Code'a, Cursor'a, ChatGPT'ye veya insan destek ekibine verebilirsin.
+Bir hata dört farklı yerde ortaya çıkabilir: **local command**, **eski Git commit'i**, **GitHub Actions** veya **production telemetry**. FixBundle bunları aynı fikre indirger: bounded + redacted + checksum'lı bir evidence ZIP. Paketi Codex'e, Claude Code'a, Cursor'a, ChatGPT'ye veya insan destek ekibine verebilirsin.
 
-## ⚡ Kurulum
+## ⚡ 4 giriş, 1 evidence paketi
 
-PyPI yayını yapılana kadar:
+```bash
+# Local failure
+fixbundle . --lang tr --run "pytest -q"
+
+# Historical failure
+fixbundle . --commit <incident-sha> --run "python app.py" --lang tr
+
+# GitHub Actions failure
+fixbundle github --repo owner/repo --run <failed-run-id> --lang tr
+
+# Production OpenTelemetry evidence
+fixbundle otlp \
+  --logs ./otel-logs.jsonl \
+  --traces ./otel-traces.jsonl \
+  --trace-id <trace-id> \
+  --lang tr
+```
+
+PyPI yayını yapılana kadar kurulum:
 
 ```bash
 pipx install git+https://github.com/yaertu/fixbundle.git
 ```
 
-Local failure:
+GitHub capture için mümkün olan en dar **Actions: Read + Contents: Read** token'ı kullan. OTLP capture tamamen localdir; account veya network istemez.
+
+## 🔭 v0.5: production olayı artık dışarıda kalmıyor
+
+`fixbundle otlp`, OpenTelemetry Protocol File Exporter JSON Lines girdisini doğrudan okur:
+
+- `resourceLogs → scopeLogs → logRecords`
+- `resourceSpans → scopeSpans → spans`
+- exact `traceId` / `spanId` correlation
+- `service.name`, service version ve deployment environment evidence
+- `exception.type`, `exception.message`, `exception.stacktrace`
+- `--trace-id`, `--since`, `--until` ile bounded selection
+- input byte + record guards
+- selected / omitted record provenance
+- redaction + SHA-256 integrity
+
+Üretilen production paketi:
+
+```text
+AI_HANDOFF.md
+manifest.json
+SHA256SUMS.txt
+production/
+  incident.json
+  exceptions.json
+  services.json
+  traces.json
+  logs.json
+```
+
+### Tek komutlu OTLP kanıt demosu
 
 ```bash
-fixbundle . --lang tr --run "pytest -q" --run "python -m build"
+python scripts/demo_otlp.py
 ```
 
-Eski commit'teki failure:
+CI'da doğrulanan demo çıktısı:
 
-```bash
-fixbundle . --commit <commit-sha> --run "python app.py" --lang tr
+```text
+PASS trace_id=4bf92f3577b34da6a3ce929d0e0e4736
+PASS correlated_logs=1
+PASS correlated_spans=1
+PASS exception=PaymentGatewayError
+PASS service=payments-api
+PASS secret_redacted
+PASS checksums=7
 ```
 
-GitHub Actions failure:
+Demo sentetik bir ürün hikâyesi değil, gerçek OTLP nested shape'ini kullanan yeniden üretilebilir bir capture senaryosudur.
 
-```bash
-export GITHUB_TOKEN=<read-only-token>
-fixbundle github --repo owner/repo --run <failed-run-id> --lang tr
-```
-
-Windows PowerShell:
-
-```powershell
-$env:GITHUB_TOKEN = "<read-only-token>"
-fixbundle github --repo owner/repo --run <failed-run-id> --lang tr
-```
-
-GitHub token için mümkün olan en dar **Actions: Read + Contents: Read** yetkisini kullan. Token output'a serialize edilmez ve FixBundle ZIP'i kendiliğinden hiçbir yere yüklemez.
-
-## 🎬 Gerçek kanıtlar
-
-### Historical commit
+## 🎬 Historical Git kanıtı
 
 <p align="center">
   <img src="docs/demo/fixbundle-v0.3-demo.svg" width="100%" alt="FixBundle historical debugging demo">
 </p>
 
-`python scripts/demo.py` eski commit'teki gerçek `AssertionError`'ı yakalar; current HEAD ve dirty workspace'in değişmediğini doğrular.
+`python scripts/demo.py`, eski commit'teki gerçek `AssertionError`'ı yakalar ve current HEAD + dirty workspace'in değişmediğini doğrular.
 
-### GitHub Actions, canlı API
+## 🧪 GitHub Actions canlı kanıtı
 
-v0.4 yalnız fixture ile doğrulanmadı. FixBundle'ın kendi geliştirme geçmişindeki **gerçek failed CI run `33587184675`** tekrar okunarak portable bundle üretildi. O olayda üç Windows job'ı `Historical demo` step'inde `UnicodeEncodeError / cp1252` ile kırılmıştı.
-
-GitHub Actions run **#63 / `33589138174`** üzerinde gerçek CLI çağrısı şu zinciri başarıyla tamamladı:
+v0.4 fixture ile bırakılmadı. FixBundle'ın kendi geçmişindeki gerçek failed run `33587184675` tekrar capture edildi:
 
 ```text
 PASS live_run=33587184675
@@ -81,100 +116,91 @@ PASS checksums=9
 PASS token_not_serialized
 ```
 
-Aynı run'da **Ubuntu + Windows + macOS × Python 3.10 / 3.12 / 3.13 = 9/9** platform job'ı ve ayrı **Live GitHub failure evidence** job'ı geçti. Ayrıntı: [`docs/evidence/V04_LIVE_GITHUB.md`](docs/evidence/V04_LIVE_GITHUB.md).
+Ayrıntı: [`docs/evidence/V04_LIVE_GITHUB.md`](docs/evidence/V04_LIVE_GITHUB.md).
 
-## 📦 GitHub failure ZIP'i
-
-```text
-AI_HANDOFF.md
-github/
-  run.json             # repo / workflow / run / commit identity
-  jobs.json            # job + step sonuçları
-  jobs/<job-id>.log    # yalnız failed job logları, bounded + redacted
-  commit.json          # ilgili commit + bounded patch context
-  workflow.yml         # olay anındaki workflow config, erişilebiliyorsa
-manifest.json
-SHA256SUMS.txt
-```
-
-Remote capture local checkout gerektirmez. Yalnız `completed + failure` run kabul edilir.
+Bu live gate v0.5 CI içinde de korunur. GitHub capture bozulursa production özelliği yeşil görünemez.
 
 ## 🛡️ Privacy by default
 
-- `.env`, `.npmrc`, `.pypirc` ve bilinen secret dosyaları local capture'da varsayılan olarak dışlanır.
-- API key, bearer token, GitHub/OpenAI/Google/AWS token kalıpları, JWT, private key ve URL credential kalıpları maskelenir.
+- `.env`, `.npmrc`, `.pypirc` ve bilinen secret dosyaları local source capture'da dışlanır.
+- API key, bearer token, GitHub/OpenAI/Google/AWS token kalıpları, JWT, private key ve URL credentials maskelenir.
 - Local project/home path'leri anonimleştirilir.
-- Text, diff ve log capture'ları boyut sınırıyla tutulur.
-- GitHub job-log redirect'lerinde bearer token imzalı blob URL'ye taşınmaz.
-- Otomatik cloud upload yoktur.
+- OTLP input absolute path'i manifest'e yazılmaz; yalnız dosya adı + byte/record provenance tutulur.
+- Text, patch, log ve telemetry girdileri bound'larla sınırlandırılır.
+- GitHub log redirect'lerinde bearer token signed blob URL'ye forward edilmez.
+- Hiçbir mode bundle'ı otomatik upload etmez.
 
-Redaction kusursuzluk garantisi değildir. Hassas veya proprietary bir bundle'ı public paylaşmadan önce ZIP'i kontrol et.
+Redaction kusursuzluk garantisi değildir. Hassas/proprietary bir bundle'ı public paylaşmadan önce ZIP'i kontrol et.
 
-## 🧩 FixBundle neyin yerine geçmiyor?
+## 🧩 Ne değil?
 
 | Araç / yaklaşım | Ana iş |
 |---|---|
-| **Repomix** | repository'yi LLM-friendly code context'e paketlamak |
-| **temporal-debug-skill** | agent'a historical worktree akışı öğretmek |
-| **GitHub Actions + Copilot** | GitHub içindeki failed check/log'u açıklamak |
-| **Sentry / observability AI** | kendi telemetry backend'i içinde runtime teşhisi yapmak |
-| **FixBundle** | **failure evidence'i agent/vendor bağımsız, redacted ve checksum'lı pakete çevirmek** |
+| **Repomix** | repository → LLM context |
+| **temporal-debug-skill** | historical worktree agent akışı |
+| **GitHub Copilot** | GitHub içinde failed check açıklama |
+| **Sentry / observability AI** | kendi telemetry backend'i içinde teşhis |
+| **OTel MCP sunucuları** | canlı telemetry'yi agent'a sorgulatma |
+| **FixBundle** | **failure evidence'i bounded, redacted, agent/vendor bağımsız artifact'e çevirme** |
 
-Ürün sınırı: **portable failure evidence**. Ayrıntı: [`docs/product/LANDSCAPE.md`](docs/product/LANDSCAPE.md).
+FixBundle observability dashboard veya AI chat değildir. Ürün sınırı **portable failure evidence**.
 
-## 🧩 Stack algılama
+## ✅ Doğrulama zinciri
 
-| Yığın | Kanıt örneği | Öneri örneği |
-|---|---|---|
-| 🟨 Node.js | `package.json` | `npm test`, `npm run build` |
-| 🐍 Python | `pyproject.toml`, `requirements.txt` | `pytest -q`, `python -m build` |
-| 🦀 Rust | `Cargo.toml` | `cargo test`, `cargo build --release` |
-| 🟪 .NET | `.sln`, `.csproj` | `dotnet test`, `dotnet build -c Release` |
-| 🐹 Go | `go.mod` | `go test ./...`, `go build ./...` |
-| ☕ Java | `pom.xml`, Gradle | `mvn test`, package/build |
+Güncel gate:
 
-```bash
-fixbundle . --recommend --lang tr
+```text
+pytest -q
+python scripts/demo.py
+python scripts/demo_otlp.py
+fixbundle --version
+fixbundle . --recommend --lang en
+Live GitHub failure evidence
+Ubuntu / Windows / macOS × Python 3.10 / 3.12 / 3.13
 ```
+
+CI sonucu görülmeden README'ye platform PASS iddiası eklenmez.
 
 ## 🌍 English quick summary
 
-**Package local failures, historical Git bugs, and failed GitHub Actions runs into redacted, portable evidence bundles.** FixBundle captures exact incident identity, bounded logs/diffs/config context and produces checksummed evidence that can move between AI coding tools and human support.
+**Turn local failures, historical Git bugs, failed GitHub Actions runs, and OpenTelemetry production incidents into redacted, checksummed evidence bundles.** FixBundle is local-first and keeps the evidence portable across AI coding tools and human support.
 
 ```bash
 fixbundle . --run "npm test"
 fixbundle . --commit <incident-sha> --run "npm test"
 fixbundle github --repo owner/repo --run <failed-run-id>
+fixbundle otlp --logs otel-logs.jsonl --traces otel-traces.jsonl --trace-id <trace-id>
 ```
 
 ## 🗺️ Yol haritası
 
-- **v0.3 ✅ Temporal Evidence:** historical commit/worktree capture.
-- **v0.4 ✅ GitHub Native:** gerçek failed Actions run → portable evidence ZIP.
-- **v0.5 Production Evidence Import:** vendor-neutral OTLP JSONL önce; Sentry adapter yalnız ek değer sağladığı yerde.
-- **v0.6 Regression Fingerprints:** bundle-vs-bundle failure/environment/dependency drift.
-- **v1.0 Stable Evidence Protocol:** versioned schema + plugin SDK + signed manifest option.
+- **v0.3 ✅ Temporal Evidence**
+- **v0.4 ✅ GitHub Native**
+- **v0.5 Production Evidence Import:** OTLP core + bounded production incident normalization
+- **v0.6 Regression Fingerprints:** bundle-vs-bundle failure/environment/dependency drift
+- **v0.7 Agent Handoff:** tool-specific export profiles without changing evidence truth
+- **v1.0 Stable Evidence Protocol:** public schema + plugin SDK + signed manifest option
 
-Sıradaki kararın araştırma temeli: [`docs/product/V05_PRODUCTION_EVIDENCE.md`](docs/product/V05_PRODUCTION_EVIDENCE.md).
+Araştırma ve tasarım: [`docs/product/V05_PRODUCTION_EVIDENCE.md`](docs/product/V05_PRODUCTION_EVIDENCE.md).
 
-## 🤝 Proje notları
+## 🤝 Proje
 
-- Katkı: [`CONTRIBUTING.md`](CONTRIBUTING.md)
-- Güvenlik: [`SECURITY.md`](SECURITY.md)
-- Canlı v0.4 kanıtı: [`docs/evidence/V04_LIVE_GITHUB.md`](docs/evidence/V04_LIVE_GITHUB.md)
-- Rakip/komşu araçlar: [`docs/product/LANDSCAPE.md`](docs/product/LANDSCAPE.md)
-- Launch planı: [`docs/product/LAUNCH_PLAYBOOK.md`](docs/product/LAUNCH_PLAYBOOK.md)
-- Gelir yaklaşımı: [`docs/product/MONETIZATION.md`](docs/product/MONETIZATION.md)
-- Adoption baseline: [`docs/product/METRICS.md`](docs/product/METRICS.md)
-- Repo bakım protokolü: [`AGENTS.md`](AGENTS.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security](SECURITY.md)
+- [Roadmap](ROADMAP.md)
+- [Live v0.4 evidence](docs/evidence/V04_LIVE_GITHUB.md)
+- [Landscape](docs/product/LANDSCAPE.md)
+- [Monetization](docs/product/MONETIZATION.md)
+- [Adoption scoreboard](docs/product/METRICS.md)
+- [Repository steward protocol](AGENTS.md)
 
 ## 🔎 GitHub About / Topics
 
-v0.4 sonrası önerilen About açıklaması:
+v0.5 hedef About:
 
-> Package local failures, historical Git bugs, and failed GitHub Actions runs into redacted AI-ready evidence bundles.
+> Package local, historical, CI, and OpenTelemetry production failures into redacted portable debugging evidence.
 
-Önerilen topics mevcut 15 topic'e ek olarak `github-actions` içerir. Kaynak: [`docs/product/REPO_HOME.md`](docs/product/REPO_HOME.md).
+Hedef topics mevcut discovery setine `github-actions`, `opentelemetry` ve `observability` ekler. Canlı metadata ile öneri [`docs/product/REPO_HOME.md`](docs/product/REPO_HOME.md) içinde ayrı tutulur; UI'da gerçekten değişmeden “güncellendi” denmez.
 
 ## 📜 Lisans
 

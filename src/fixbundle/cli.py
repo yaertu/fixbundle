@@ -10,6 +10,7 @@ from . import __version__
 from .collect import build_bundle
 from .github import DEFAULT_MAX_LOG_CHARS, build_github_bundle
 from .history import build_historical_bundle
+from .otlp import DEFAULT_MAX_INPUT_BYTES, DEFAULT_MAX_RECORDS, build_otlp_bundle
 from .stack import detect_stacks
 
 
@@ -30,7 +31,7 @@ def _configure_stdio() -> None:
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="fixbundle",
-        description="Turn a broken project into an AI-ready debugging bundle.",
+        description="Turn a software failure into a portable AI-ready evidence bundle.",
     )
     p.add_argument("project", nargs="?", default=".", help="Project directory (default: current directory)")
     p.add_argument("-o", "--output", default=".fixbundle", help="Output directory (default: .fixbundle)")
@@ -54,6 +55,23 @@ def github_parser() -> argparse.ArgumentParser:
     p.add_argument("-o", "--output", default=".fixbundle", help="Output directory (default: .fixbundle)")
     p.add_argument("--token-env", default="GITHUB_TOKEN", help="Environment variable containing a read-only GitHub token")
     p.add_argument("--max-log-chars", type=int, default=DEFAULT_MAX_LOG_CHARS, help="Maximum characters captured per failed job log")
+    p.add_argument("--lang", choices=["auto", "tr", "en"], default="auto", help="CLI output language")
+    return p
+
+
+def otlp_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="fixbundle otlp",
+        description="Turn OpenTelemetry Protocol File Exporter JSON/JSONL into a portable production evidence bundle.",
+    )
+    p.add_argument("--logs", required=True, metavar="FILE", help="OTLP JSON/JSONL logs file")
+    p.add_argument("--traces", metavar="FILE", help="Optional OTLP JSON/JSONL traces file")
+    p.add_argument("--trace-id", metavar="TRACE_ID", help="Select only records with this exact trace id")
+    p.add_argument("--since", metavar="RFC3339", help="Inclusive lower timestamp bound")
+    p.add_argument("--until", metavar="RFC3339", help="Inclusive upper timestamp bound")
+    p.add_argument("-o", "--output", default=".fixbundle", help="Output directory (default: .fixbundle)")
+    p.add_argument("--max-input-bytes", type=int, default=DEFAULT_MAX_INPUT_BYTES, help="Maximum bytes accepted per OTLP input file")
+    p.add_argument("--max-records", type=int, default=DEFAULT_MAX_RECORDS, help="Maximum total normalized log + span records")
     p.add_argument("--lang", choices=["auto", "tr", "en"], default="auto", help="CLI output language")
     return p
 
@@ -113,11 +131,52 @@ def _github_main(argv: list[str]) -> int:
     return 0
 
 
+def _otlp_main(argv: list[str]) -> int:
+    args = otlp_parser().parse_args(argv)
+    lang = _lang(args.lang)
+    try:
+        zip_path, manifest = build_otlp_bundle(
+            logs_path=Path(args.logs),
+            traces_path=Path(args.traces) if args.traces else None,
+            output_dir=Path(args.output),
+            trace_id=args.trace_id,
+            since=args.since,
+            until=args.until,
+            max_input_bytes=args.max_input_bytes,
+            max_records=args.max_records,
+        )
+    except Exception as exc:
+        msg = f"fixbundle otlp: paket oluşturulamadı: {exc}" if lang == "tr" else f"fixbundle otlp: failed: {exc}"
+        print(msg, file=sys.stderr)
+        return 1
+
+    selected = manifest["selected"]
+    if lang == "tr":
+        print("FixBundle production kanıt paketi hazır [OK]")
+        print(f"  ZIP: {zip_path}")
+        print(f"  Log: {selected['logs']}")
+        print(f"  Span: {selected['spans']}")
+        print(f"  Exception: {selected['exceptions']}")
+        print(f"  Trace: {len(selected['trace_ids'])}")
+        print(f"  Gizleme/yol maskeleme: {manifest['redactions']}")
+    else:
+        print("FixBundle production evidence bundle created [OK]")
+        print(f"  ZIP: {zip_path}")
+        print(f"  Logs: {selected['logs']}")
+        print(f"  Spans: {selected['spans']}")
+        print(f"  Exceptions: {selected['exceptions']}")
+        print(f"  Traces: {len(selected['trace_ids'])}")
+        print(f"  Redactions/path masks: {manifest['redactions']}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     _configure_stdio()
     raw = list(sys.argv[1:] if argv is None else argv)
     if raw and raw[0] == "github":
         return _github_main(raw[1:])
+    if raw and raw[0] == "otlp":
+        return _otlp_main(raw[1:])
 
     args = parser().parse_args(raw)
     lang = _lang(args.lang)

@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
@@ -34,6 +35,8 @@ jobs:
           fixbundle . --recommend --lang en
       - name: Historical demo
         run: python scripts/demo.py
+      - name: OTLP production evidence demo
+        run: python scripts/demo_otlp.py
 
   live-github-evidence:
     name: Live GitHub failure evidence
