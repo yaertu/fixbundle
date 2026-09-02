@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import zipfile
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -172,7 +172,11 @@ def test_otlp_rejects_malformed_jsonl(tmp_path: Path):
 
 def test_otlp_rejects_invalid_time_range_and_record_overflow(tmp_path: Path):
     logs = tmp_path / "logs.jsonl"
-    write_jsonl(logs, log_doc(TRACE_A, message="x", at="2026-09-02T01:02:00Z"))
+    write_jsonl(
+        logs,
+        log_doc(TRACE_A, message="x", at="2026-09-02T01:02:00Z"),
+        log_doc(TRACE_B, message="y", at="2026-09-02T01:03:00Z"),
+    )
 
     with pytest.raises(OTLPError, match="--since"):
         build_otlp_bundle(
@@ -188,5 +192,5 @@ def test_otlp_rejects_invalid_time_range_and_record_overflow(tmp_path: Path):
             logs_path=logs,
             traces_path=None,
             output_dir=tmp_path / "out-b",
-            max_records=0,
+            max_records=1,
         )
