@@ -1,38 +1,62 @@
 # Next move
 
-## v0.5 single highest-value milestone
-**OpenTelemetry production event → portable FixBundle evidence packet.**
+## v0.6 candidate — Cross-source Evidence Compare
 
-v0.4 artık gerçek GitHub Actions failure üzerinde doğrulandı. Sıradaki problem “CI'da değil, production'da oldu” vakası.
+**User result:** two FixBundle artifacts in, a deterministic “what changed?” report out.
 
-### Araştırma kararı
-İlk v0.5 adapter'ı Sentry-specific olmayacak. OpenTelemetry'nin Protocol File Exporter'ı telemetry'yi standart OTLP JSON Lines olarak dosyaya yazabiliyor; exception semantiğinde `exception.type`, `exception.message` ve `exception.stacktrace` alanları tanımlı. Bu, FixBundle'ın vendor-independent ürün sınırına daha iyi uyuyor.
+v0.5 closes the production-ingestion gap with OTLP. The next useful problem is no longer “collect more logs.” It is comparing a known-good/baseline incident against a broken/current incident without forcing the engineer to manually jump between Git, CI, telemetry and support bundles.
 
-Sentry daha sonra desteklenecek fakat yalnızca gerçek ek değer sağladığı yerde. Sentry'nin issue-event API'si 2026 itibarıyla `llmFormat=markdown|xml` ile doğrudan LLM formatı sunuyor. Sadece “Sentry event'i Markdown'a çeviren” bir wrapper ürün farkı yaratmaz.
+## Research boundary
+Do not build another generic log diff or vendor error-grouping engine.
 
-### Proposed CLI
+- Sentry already owns vendor-specific issue grouping/fingerprints.
+- Existing log comparison products can compare two log sets and highlight new/missing/spiking events.
+- Git already owns source-level diff/bisect.
+- SRE discussions still repeatedly identify “what changed?” and switching among GitHub/observability/tickets/docs as painful.
+
+The FixBundle-specific wedge is **cross-source artifact comparison**: compare the normalized evidence we already capture from local commands, historical Git, GitHub Actions and OTLP production incidents.
+
+## Proposed CLI
 
 ```bash
-fixbundle otlp --logs ./otel-logs.jsonl --traces ./otel-traces.jsonl --lang tr
+fixbundle compare baseline.zip incident.zip
 ```
 
-Daha sonra:
+Optional machine output:
 
 ```bash
-fixbundle sentry --org <org> --issue <issue-id> --event recommended
+fixbundle compare baseline.zip incident.zip --format json
 ```
 
-### Definition of done
-- OTLP JSON/JSONL dosyasını local ve account'suz okuyabilme,
-- logs/traces içinden trace/span correlation,
-- service/environment/release/deployment identity,
-- exception type/message/stacktrace normalization,
-- configurable bounded time/incident selection,
-- secret/PII redaction katmanından geçirme,
-- raw telemetry'yi körlemesine bundle'a doldurmak yerine seçilen kanıtı manifestte açıklama,
-- SHA-256 integrity + AI handoff,
-- malformed/oversized input için fail-closed testleri,
-- gerçek veya spec-conformant OTLP fixture ile yeniden üretilebilir demo.
+## Deterministic comparison layers
+1. Bundle/schema/capture-mode identity.
+2. Failure signature changes without pretending to replace Sentry grouping.
+3. Exception type/message presence and trace/service identity drift.
+4. Service/release/environment/deployment changes.
+5. Command exit-code and failed job/step changes.
+6. Git commit/diff evidence when present.
+7. Stack/runtime/dependency evidence changes when present.
+8. Missing evidence explicitly reported instead of guessed.
 
-### Distribution hypothesis
-CI evidence geliştiriciyi GitHub'dan yakalar; OTLP evidence ise backend/infra/agent geliştiricisini production telemetry'den yakalar. Eğer bu ikinci giriş gerçek kullanım üretirse FixBundle “bir CLI özelliği” olmaktan çıkıp ortak failure-evidence formatına yaklaşır.
+## Non-goals
+- no LLM required for the core diff,
+- no “root cause guaranteed” claim,
+- no fuzzy merging of unrelated traces/incidents,
+- no raw line-by-line dump as the primary result,
+- no Sentry fingerprint clone.
+
+## Definition of done
+- compare two valid FixBundle ZIPs read-only,
+- validate checksums before comparison,
+- reject unsafe ZIP paths / malformed manifests / incompatible unsupported schema,
+- normalize evidence across different capture modes,
+- emit deterministic JSON plus human-readable Markdown/text,
+- clearly separate added / removed / changed / unavailable evidence,
+- tests for local↔local, GitHub↔GitHub and GitHub/OTLP cross-source cases,
+- reproducible before/after demo,
+- existing historical, live GitHub and OTLP gates remain green.
+
+## Why this could matter
+FixBundle becomes more useful on the **second incident**, not only the first. That is directly aligned with the adoption gate that matters most: somebody choosing to use the tool again because prior evidence became a baseline.
+
+Research notes are intentionally conservative: “what changed?” is a real incident-response problem, but comparison itself is not novel. The product value must come from a portable, normalized, integrity-checked artifact boundary across sources.
