@@ -28,3 +28,5 @@ jobs:
         run: |
           fixbundle --version
           fixbundle . --recommend --lang en
+      - name: Historical demo
+        run: python scripts/demo.py
