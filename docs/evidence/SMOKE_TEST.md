@@ -2,7 +2,7 @@
 
 Bu belge, README'deki çalışabilirlik iddialarının kısa ve yeniden üretilebilir kanıtıdır.
 
-## Test sonucu
+## Yerel test sonucu
 
 ```text
 $ python -m pytest -q
@@ -26,4 +26,8 @@ FixBundle hazır ✅
 
 `fixbundle-0.2.0-py3-none-any.whl` yerel olarak `pip wheel --no-build-isolation` ile başarıyla üretildi.
 
-> Not: Bu kanıt lokal doğrulamadan gelir. GitHub Actions, repository yayınlandıktan sonra aynı testleri Windows, macOS ve Ubuntu üzerinde yeniden çalıştırır.
+## GitHub Actions matrix
+
+Cross-platform doğrulama artık tamamlandı: **Windows + macOS + Ubuntu × Python 3.10/3.12/3.13 = 9/9 job PASS.** Her job install, `pytest -q`, `fixbundle --version` ve `fixbundle . --recommend --lang en` smoke adımlarını geçti.
+
+Ayrıntılı matris: [CI_MATRIX.md](CI_MATRIX.md).
