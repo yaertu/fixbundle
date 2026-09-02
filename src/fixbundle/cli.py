@@ -11,6 +11,20 @@ from .history import build_historical_bundle
 from .stack import detect_stacks
 
 
+def _configure_stdio() -> None:
+    """Prefer UTF-8 CLI output without crashing legacy Windows code pages."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            try:
+                reconfigure(encoding="utf-8", errors="replace")
+            except (OSError, ValueError):
+                try:
+                    reconfigure(errors="replace")
+                except (OSError, ValueError):
+                    pass
+
+
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="fixbundle",
@@ -50,6 +64,7 @@ def _recommend(root: Path, lang: str) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    _configure_stdio()
     args = parser().parse_args(argv)
     lang = _lang(args.lang)
     root = Path(args.project)
@@ -86,14 +101,14 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     if lang == "tr":
-        print("FixBundle hazır ✅")
+        print("FixBundle hazır [OK]")
         print(f"  ZIP: {zip_path}")
         print(f"  Dosya: {len(manifest['files_captured'])}")
         print(f"  Komut: {len(manifest['commands'])}")
         print(f"  Gizleme/yol maskeleme: {manifest['redactions']}")
         print("  ZIP'i ChatGPT, Codex, Claude Code, Cursor veya destek ekibine ver.")
     else:
-        print("FixBundle created ✅")
+        print("FixBundle created [OK]")
         print(f"  ZIP: {zip_path}")
         print(f"  Files: {len(manifest['files_captured'])}")
         print(f"  Commands: {len(manifest['commands'])}")
