@@ -1,98 +1,114 @@
 <p align="center">
-  <img src="assets/fixbundle-logo.svg" width="118" alt="FixBundle logo">
+  <img src="assets/fixbundle-logo.svg" width="112" alt="FixBundle logo">
 </p>
 
 <h1 align="center">FixBundle 🧰</h1>
 
-<p align="center"><strong>Bozuk projeyi tek komutla AI-ready hata ayıklama paketine çevir.</strong></p>
+<p align="center"><strong>Bozuk projeyi tek komutla, paylaşılabilir ve AI-ready hata ayıklama paketine çevir.</strong></p>
 
 <p align="center">
   <a href="https://github.com/yaertu/fixbundle/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/yaertu/fixbundle/actions/workflows/ci.yml/badge.svg"></a>
   <img alt="Python 3.10+" src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white">
-  <img alt="Version 0.2.0" src="https://img.shields.io/badge/version-0.2.0-8B5CF6">
+  <img alt="Version 0.3.0" src="https://img.shields.io/badge/version-0.3.0-8B5CF6">
   <img alt="Local first" src="https://img.shields.io/badge/privacy-local--first-0EA5E9">
   <img alt="License MIT" src="https://img.shields.io/badge/license-MIT-22C55E">
 </p>
 
 <p align="center"><img src="assets/hero.svg" width="100%" alt="FixBundle: broken project to AI-ready debugging bundle"></p>
 
-> **Sonuç:** Ekran görüntüsü, yarım log ve rastgele kaynak dosyası taşımak yerine tek ZIP üret. ChatGPT, Codex, Claude Code, Cursor veya insan destek ekibi aynı kanıt seti üzerinden çalışsın.
+**Logları tek tek kopyalamak, hangi commit'te hata çıktığını anlatmak ve kaynak dosyalarını rastgele sohbete atmak yerine tek ZIP üret.** FixBundle; Git durumu, gerçek test/build çıktıları, ortam bilgisi ve ilgili metin dosyalarını toplar, yaygın secret kalıplarını maskeler ve aynı kanıt setini ChatGPT, Codex, Claude Code, Cursor veya insan destek ekibine verebileceğin hale getirir.
 
-## ⚡ 30 saniyelik kullanım
+## 🎬 Gerçek çalışma demosu
+
+<p align="center">
+  <img src="docs/demo/fixbundle-v0.3-demo.gif" width="100%" alt="FixBundle v0.3 historical debugging demo">
+</p>
+
+Demoda hata **eski bir commit'te**, güncel branch ise düzeltilmiş durumda. Çalışma alanında ayrıca commitlenmemiş bir dosya var. `--commit` eski commit'i geçici Git worktree içinde çalıştırıyor, gerçek `AssertionError` çıktısını bundle'a koyuyor ve güncel çalışma alanını değiştirmiyor.
+
+Bunu kendin yeniden üret:
+
+```bash
+python scripts/demo.py
+```
+
+Beklenen sonuç:
+
+```text
+PASS  incident_commit_matches
+PASS  current_head_preserved
+PASS  dirty_workspace_preserved
+PASS  old_buggy_source_captured
+PASS  real_failure_captured
+```
+
+## ⚡ Kurulum ve kullanım
+
+PyPI yayını yapılana kadar doğrudan GitHub'dan:
 
 ```bash
 pipx install git+https://github.com/yaertu/fixbundle.git
+```
+
+Güncel proje için:
+
+```bash
 cd bozuk-proje
 fixbundle . --lang tr --run "pytest -q" --run "python -m build"
 ```
 
-Önce hangi komutların mantıklı olduğunu görmek istersen:
+Eski commit'te yaşanmış production hatası için:
+
+```bash
+fixbundle . --commit <commit-sha> --run "python app.py" --lang tr
+```
+
+Hangi doğrulama komutlarının mantıklı olduğunu görmek için:
 
 ```bash
 fixbundle . --recommend --lang tr
 ```
 
-Çıktı:
+## 📦 ZIP'in içinde ne var?
 
 ```text
-.fixbundle/
-└── fixbundle-proje-YYYYMMDD-HHMMSS.zip
-```
-
-ZIP'in içinde:
-
-```text
-AI_HANDOFF.md          # AI için kanıt önceliği + istenen cevap formatı
-manifest.json          # capture manifesti ve privacy bilgisi
-stack.json             # algılanan teknoloji yığınları + önerilen komutlar
-system.json            # işletim sistemi/runtime kanıtı
+AI_HANDOFF.md          # inceleme sırası ve beklenen çözüm formatı
+manifest.json          # capture özeti + privacy sınırları
+incident.json          # --commit kullanıldıysa incident/current commit kimliği
+stack.json             # algılanan teknoloji yığını + önerilen komutlar
+system.json            # işletim sistemi/runtime bilgisi
 tree.txt               # filtrelenmiş proje ağacı
-SHA256SUMS.txt         # bütünlük doğrulaması
+SHA256SUMS.txt         # dosya bütünlük hash'leri
 git/
-  head.txt             # olayın ilişkilendirileceği commit
+  head.txt
   branch.txt
   status.txt
   diff.patch
   recent.txt
 commands/
-  01.log               # gerçek test/build çıktıları
+  01.log               # gerçek test/build/runtime çıktısı
 project/
   ...                  # seçilmiş text/source/config snapshotları
 ```
 
-## 🎯 Neyi çözüyor?
+## 🧭 Neden `--commit` önemli?
 
-AI coding araçları çoğu zaman **kanıt eksikliğinden** hata yapıyor: yanlış commit, eksik log, bilinmeyen ortam, devasa ve ilgisiz source dump'ı veya chat'e yanlışlıkla taşınmış secret'lar. FixBundle bu dağınıklığı standart bir diagnostic handoff'a dönüştürür.
+Production bug'larında sık görülen sorun basit: **hata dün oldu, AI bugünkü kodu okuyor.** FixBundle v0.3 eski commit'i mevcut çalışma klasörüne checkout etmez. Geçici, detached bir Git worktree açar; kanıtı orada toplar; worktree'yi siler ve ana çalışma alanının HEAD/dirty durumunun aynı kaldığını doğrular.
 
-```mermaid
-flowchart LR
-    A[💥 Broken project] --> B[🧰 FixBundle]
-    B --> C[Git + HEAD]
-    B --> D[Test / build logs]
-    B --> E[Stack + environment]
-    B --> F[Relevant source/config]
-    C --> G[🔒 Redaction + path masking]
-    D --> G
-    E --> G
-    F --> G
-    G --> H[📦 Deterministic bundle]
-    H --> I[🧠 ChatGPT / Codex]
-    H --> J[🤖 Claude Code / Cursor]
-    H --> K[👩‍💻 Human support]
-```
+Bu davranış testle korunuyor: [`tests/test_history.py`](tests/test_history.py).
 
 ## 🛡️ Privacy by default
 
-FixBundle v0.2.0:
+FixBundle:
 
 - `.env`, `.npmrc`, `.pypirc`, credential/secrets dosyalarını varsayılan olarak **almaz**.
-- API key, bearer token, GitHub token, OpenAI key, Google key, AWS access key, JWT, private key ve URL credential kalıplarını **maskeler**.
+- API key, bearer token, GitHub/OpenAI/Google/AWS token kalıpları, JWT, private key ve URL credential kalıplarını **maskeler**.
 - Proje kökü ve kullanıcı home yolunu `<PROJECT>` / `<HOME>` olarak **anonimleştirir**.
-- `node_modules`, `.git`, `target`, `dist`, `build`, `.fixbundle` gibi üretilmiş/vendor klasörlerini **dışlar**.
-- Tek text capture'ı sınırlayarak runaway log/diff şişmesini **engeller**.
-- Hiçbir şeyi buluta yüklemez. **Local-first** çalışır.
+- `node_modules`, `.git`, `target`, `dist`, `build`, `.fixbundle` gibi vendor/üretilmiş klasörleri **dışlar**.
+- Metin, diff ve log capture'larını boyut sınırıyla **kontrol altında tutar**.
+- Hiçbir şeyi kendiliğinden buluta yüklemez. **Local-first** çalışır.
 
-Hiçbir redactor kusursuz değildir. Özellikle proprietary repository'lerde paylaşmadan önce ZIP'i gözden geçir.
+Redaction kusursuzluk garantisi değildir. Hassas veya proprietary bir bundle'ı public paylaşmadan önce ZIP'i kontrol et.
 
 ## 🧩 Stack algılama
 
@@ -105,44 +121,66 @@ Hiçbir redactor kusursuz değildir. Özellikle proprietary repository'lerde pay
 | 🐹 Go | `go.mod` | `go test ./...`, `go build ./...` |
 | ☕ Java | `pom.xml`, Gradle | `mvn test`, package/build |
 
-FixBundle öneri verir, fakat v0.2'de önerilen komutları kullanıcı izni olmadan otomatik çalıştırmaz.
+FixBundle öneri verir; önerilen komutları kullanıcı istemeden otomatik çalıştırmaz.
 
-## 🧪 Çalıştığına dair kanıt
+## ✅ Kanıt zinciri
 
-<p align="center"><img src="docs/evidence/terminal-proof.svg" width="100%" alt="FixBundle smoke test: 3 tests passed"></p>
+Yerel v0.3 doğrulaması:
 
-Yerel v0.2 doğrulamasında **3/3 test geçti**, FixBundle kendi repository'sini capture edip test çıktısını bundle'a ekledi ve redaction/path masking uyguladı. Yeniden üretilebilir komutlar için [SMOKE_TEST.md](docs/evidence/SMOKE_TEST.md) dosyasına bak.
+```text
+$ python -m pytest -q
+....                                                                     [100%]
+4 passed
+
+$ python scripts/demo.py
+PASS  incident_commit_matches
+PASS  current_head_preserved
+PASS  dirty_workspace_preserved
+PASS  old_buggy_source_captured
+PASS  real_failure_captured
+```
+
+CI; Ubuntu, Windows ve macOS üzerinde Python 3.10 / 3.12 / 3.13 matrisini çalıştırır. Ayrıntılı ve yeniden üretilebilir kanıt: [`docs/evidence/SMOKE_TEST.md`](docs/evidence/SMOKE_TEST.md).
 
 ## 🌍 English quick summary
 
-**One command turns a broken project into an AI-ready debugging bundle.** FixBundle captures Git state, exact commit identity, command failures, stack/environment evidence and relevant source/config snapshots; then redacts common secrets and absolute user paths before producing a checksum-verified ZIP. Local-first, no cloud account required.
+**One command turns a broken project into a redacted, AI-ready debugging bundle.** FixBundle captures Git identity, command failures, runtime/stack evidence and relevant source/config snapshots. v0.3 can reproduce an incident from an older commit in an isolated Git worktree without checking out over your current workspace.
 
 ```bash
 pipx install git+https://github.com/yaertu/fixbundle.git
 fixbundle . --run "npm test" --run "npm run build"
+fixbundle . --commit <incident-sha> --run "npm test"
 ```
 
 ## 🗺️ Yol haritası
 
-- **v0.2 ✅** Stack detection, Git HEAD evidence, Turkish CLI, stronger redaction/path masking.
-- **v0.3** Historical snapshot/worktree capture for production bugs that happened on an older commit.
-- **v0.4** GitHub Actions failure bundle + issue handoff.
-- **v0.5** Sentry/structured log adapters + time-window capture.
-- **v0.6** Before/after regression fingerprints + environment drift.
-- **v1.0** Stable bundle schema + plugin SDK + signed manifests.
+- **v0.3 ✅ Temporal Debugging:** historical commit/worktree capture + workspace preservation.
+- **v0.4 GitHub Native:** failed Actions run → AI-ready evidence bundle.
+- **v0.5 Production Evidence:** Sentry/structured log adapter + bounded time window.
+- **v0.6 Regression Fingerprints:** bundle-vs-bundle failure/environment/dependency drift.
+- **v1.0 Stable Evidence Protocol:** versioned schema + plugin SDK + signed manifest option.
 
-Detay: [ROADMAP.md](ROADMAP.md)
+Detay: [`ROADMAP.md`](ROADMAP.md)
 
-## 🤝 Katkı
+## 🤝 Katkı ve proje yönetimi
 
-Bug raporunda mümkünse **FixBundle ile üretilmiş, kontrol edilmiş** kanıt ekle. Özellikle secret içerebilecek proprietary içerikleri public issue'ya yükleme. Katkı akışı: [CONTRIBUTING.md](CONTRIBUTING.md).
+- Katkı: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- Güvenlik: [`SECURITY.md`](SECURITY.md)
+- Neden şimdi?: [`docs/product/WHY_NOW.md`](docs/product/WHY_NOW.md)
+- Dağıtım/launch metinleri: [`docs/product/LAUNCH_PLAYBOOK.md`](docs/product/LAUNCH_PLAYBOOK.md)
+- Sürdürülebilir gelir yaklaşımı: [`docs/product/MONETIZATION.md`](docs/product/MONETIZATION.md)
+- Repo bakım protokolü ve devam komutları: [`AGENTS.md`](AGENTS.md)
 
-## 🔎 GitHub topic önerileri
+## 🔎 GitHub About / Topics
 
-Repository **About → Topics** alanına şunları ekle:
+Önerilen açıklama:
 
-`ai-debugging` · `developer-tools` · `diagnostics` · `bug-report` · `support-bundle` · `codex` · `claude-code` · `cursor` · `reproducibility` · `python`
+> One command turns a broken project or historical Git commit into a redacted, AI-ready debugging bundle.
+
+Önerilen topics:
+
+`ai-debugging` · `developer-tools` · `diagnostics` · `bug-report` · `support-bundle` · `codex` · `claude-code` · `cursor` · `reproducibility` · `git`
 
 ## 📜 Lisans
 
-MIT. Güvenlik bildirimi: [SECURITY.md](SECURITY.md).
+MIT.
