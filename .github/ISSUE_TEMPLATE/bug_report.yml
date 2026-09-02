@@ -1,0 +1,42 @@
+name: Hata raporu / Bug report
+description: Yeniden üretilebilir bir FixBundle problemi bildir
+title: "[bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Teşekkürler. Gerçek secret veya proprietary bundle'ı public issue'ya ekleme."
+  - type: input
+    id: version
+    attributes:
+      label: FixBundle sürümü
+      placeholder: 0.2.0
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: İşletim sistemi
+      options: [Windows, macOS, Linux, WSL, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Çalıştırılan komut
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Ne oldu, ne olmasını bekliyordun?
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy kontrolü
+      options:
+        - label: Eklediğim diagnostic içeriği secret/proprietary veri açısından kontrol ettim.
+          required: true
