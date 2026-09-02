@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">FixBundle logo</title><desc id="desc">A toolbox with a diagnostic pulse and spark.</desc>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#38bdf8"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient>
+    <filter id="s"><feDropShadow dx="0" dy="14" stdDeviation="18" flood-opacity=".25"/></filter>
+  </defs>
+  <rect x="28" y="28" width="456" height="456" rx="112" fill="#0b1020"/>
+  <rect x="86" y="174" width="340" height="238" rx="56" fill="url(#g)" filter="url(#s)"/>
+  <path d="M183 174v-22c0-31 25-56 56-56h34c31 0 56 25 56 56v22" fill="none" stroke="#e2e8f0" stroke-width="28" stroke-linecap="round"/>
+  <path d="M110 260h74l28-54 47 112 34-74 25 46h84" fill="none" stroke="#fff" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="300" r="22" fill="#0b1020" stroke="#fff" stroke-width="10"/>
+  <path d="M375 91l10 24 24 10-24 10-10 24-10-24-24-10 24-10 10-24z" fill="#f8fafc"/>
+</svg>
