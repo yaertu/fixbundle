@@ -4,10 +4,12 @@ README'deki davranış iddialarını yeniden üretmek için gereken kısa kanıt
 
 ## 1. Unit / integration tests
 
+GitHub Actions run #43 içindeki Windows Python 3.12 örneği:
+
 ```text
-$ python -m pytest -q
-....                                                                     [100%]
-4 passed
+$ pytest -q
+.....                                                                    [100%]
+5 passed in 1.32s
 ```
 
 Kapsanan ana davranışlar:
@@ -15,6 +17,7 @@ Kapsanan ana davranışlar:
 - stack detection
 - provider/token redaction
 - historical commit capture + dirty workspace preservation
+- legacy Windows/CP1252-benzeri stdout koşulunda Türkçe CLI'nin çökmeden çalışması
 
 ## 2. Historical incident demo
 
@@ -32,14 +35,18 @@ Demo iki commit üretir. İlk commit bilinçli olarak bozuk, ikinci commit düze
 
 ## 3. CI
 
-`.github/workflows/ci.yml` aşağıdaki matrisi çalıştırır:
-- ubuntu-latest / windows-latest / macos-latest
+Doğrulanan behavior commit: `153dbecae075c6cc48e6375450ebf2493f263705`
+
+GitHub Actions run: `33587276906`
+
+`.github/workflows/ci.yml` matrisi:
+- Ubuntu / Windows / macOS
 - Python 3.10 / 3.12 / 3.13
 - pytest
 - CLI smoke
 - historical demo
 
-GitHub Actions sonucu README'deki CI badge üzerinden görülebilir.
+**9/9 job PASS.** Ayrıntı: [CI_MATRIX.md](CI_MATRIX.md).
 
 ## 4. Kanıt sınırı
 
