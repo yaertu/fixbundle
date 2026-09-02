@@ -35,9 +35,13 @@ class GitHubAPI:
             "User-Agent": "fixbundle/0.4",
             "X-GitHub-Api-Version": "2022-11-28",
         }
-        if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
         req = urllib.request.Request(url, headers=headers)
+        if self.token:
+            # GitHub Actions job-log endpoints redirect to a signed blob URL.
+            # Keep the bearer token on the API request only; forwarding it to
+            # the redirect target can both leak credentials and make the signed
+            # download fail with 403.
+            req.add_unredirected_header("Authorization", f"Bearer {self.token}")
         try:
             with urllib.request.urlopen(req, timeout=30) as response:
                 body = response.read()
@@ -45,11 +49,11 @@ class GitHubAPI:
             detail = exc.read().decode("utf-8", "replace")[:1200]
             if exc.code in {401, 403}:
                 raise GitHubAPIError(
-                    "GitHub denied the request. Set GITHUB_TOKEN with read access to Actions and repository contents."
+                    f"GitHub denied {url}. Set GITHUB_TOKEN with read access to Actions and repository contents."
                 ) from exc
-            raise GitHubAPIError(f"GitHub API HTTP {exc.code}: {detail}") from exc
+            raise GitHubAPIError(f"GitHub API HTTP {exc.code} for {url}: {detail}") from exc
         except urllib.error.URLError as exc:
-            raise GitHubAPIError(f"GitHub API connection failed: {exc.reason}") from exc
+            raise GitHubAPIError(f"GitHub API connection failed for {url}: {exc.reason}") from exc
         self.resources_read.append(url)
         return body
 
