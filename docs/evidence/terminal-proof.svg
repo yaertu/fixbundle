@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+<title id="title">FixBundle smoke test proof</title><desc id="desc">Three tests pass and FixBundle creates a sanitized evidence archive.</desc>
+<rect width="1200" height="560" rx="34" fill="#0a0f1d"/>
+<rect x="34" y="34" width="1132" height="492" rx="22" fill="#050814" stroke="#273449"/>
+<circle cx="76" cy="73" r="8" fill="#fb7185"/><circle cx="102" cy="73" r="8" fill="#facc15"/><circle cx="128" cy="73" r="8" fill="#4ade80"/>
+<g font-family="Consolas,Menlo,monospace" font-size="25">
+<text x="66" y="130" fill="#7dd3fc">$ python -m pytest -q</text>
+<text x="66" y="174" fill="#86efac">...  3 passed in 1.58s</text>
+<text x="66" y="238" fill="#7dd3fc">$ fixbundle . --lang tr --run &quot;python -m pytest -q&quot;</text>
+<text x="66" y="286" fill="#86efac">FixBundle hazır ✓</text>
+<text x="92" y="328" fill="#e2e8f0">Dosya: 24</text>
+<text x="92" y="370" fill="#e2e8f0">Komut: 1</text>
+<text x="92" y="412" fill="#c4b5fd">Gizleme/yol maskeleme: 7</text>
+<text x="66" y="472" fill="#94a3b8">Kanıt: manifest + stack + Git HEAD + command logs + SHA-256</text>
+</g>
+</svg>
