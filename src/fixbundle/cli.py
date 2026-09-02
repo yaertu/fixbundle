@@ -8,6 +8,7 @@ from pathlib import Path
 
 from . import __version__
 from .collect import build_bundle
+from .compare import compare_bundles, render_json, render_text
 from .github import DEFAULT_MAX_LOG_CHARS, build_github_bundle
 from .history import build_historical_bundle
 from .otlp import DEFAULT_MAX_INPUT_BYTES, DEFAULT_MAX_RECORDS, build_otlp_bundle
@@ -73,6 +74,17 @@ def otlp_parser() -> argparse.ArgumentParser:
     p.add_argument("--max-input-bytes", type=int, default=DEFAULT_MAX_INPUT_BYTES, help="Maximum bytes accepted per OTLP input file")
     p.add_argument("--max-records", type=int, default=DEFAULT_MAX_RECORDS, help="Maximum total normalized log + span records")
     p.add_argument("--lang", choices=["auto", "tr", "en"], default="auto", help="CLI output language")
+    return p
+
+
+def compare_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="fixbundle compare",
+        description="Compare two integrity-checked FixBundle ZIPs and report deterministic evidence changes.",
+    )
+    p.add_argument("baseline", metavar="BASELINE_ZIP", help="Known-good or earlier FixBundle ZIP")
+    p.add_argument("incident", metavar="INCIDENT_ZIP", help="Broken or later FixBundle ZIP")
+    p.add_argument("--format", choices=["text", "json"], default="text", dest="output_format", help="Output format")
     return p
 
 
@@ -170,6 +182,19 @@ def _otlp_main(argv: list[str]) -> int:
     return 0
 
 
+def _compare_main(argv: list[str]) -> int:
+    args = compare_parser().parse_args(argv)
+    try:
+        report = compare_bundles(Path(args.baseline), Path(args.incident))
+    except Exception as exc:
+        print(f"fixbundle compare: failed: {exc}", file=sys.stderr)
+        return 1
+
+    rendered = render_json(report) if args.output_format == "json" else render_text(report)
+    print(rendered, end="")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     _configure_stdio()
     raw = list(sys.argv[1:] if argv is None else argv)
@@ -177,6 +202,8 @@ def main(argv: list[str] | None = None) -> int:
         return _github_main(raw[1:])
     if raw and raw[0] == "otlp":
         return _otlp_main(raw[1:])
+    if raw and raw[0] == "compare":
+        return _compare_main(raw[1:])
 
     args = parser().parse_args(raw)
     lang = _lang(args.lang)
