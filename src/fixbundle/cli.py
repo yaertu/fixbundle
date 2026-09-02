@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import argparse
 import locale
+import os
 import sys
 from pathlib import Path
 
 from . import __version__
 from .collect import build_bundle
+from .github import DEFAULT_MAX_LOG_CHARS, build_github_bundle
 from .history import build_historical_bundle
 from .stack import detect_stacks
 
@@ -42,6 +44,20 @@ def parser() -> argparse.ArgumentParser:
     return p
 
 
+def github_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="fixbundle github",
+        description="Turn a failed GitHub Actions run into a portable, redacted evidence bundle.",
+    )
+    p.add_argument("--repo", required=True, metavar="OWNER/REPO", help="GitHub repository")
+    p.add_argument("--run", required=True, type=int, dest="run_id", metavar="RUN_ID", help="Completed failed Actions run id")
+    p.add_argument("-o", "--output", default=".fixbundle", help="Output directory (default: .fixbundle)")
+    p.add_argument("--token-env", default="GITHUB_TOKEN", help="Environment variable containing a read-only GitHub token")
+    p.add_argument("--max-log-chars", type=int, default=DEFAULT_MAX_LOG_CHARS, help="Maximum characters captured per failed job log")
+    p.add_argument("--lang", choices=["auto", "tr", "en"], default="auto", help="CLI output language")
+    return p
+
+
 def _lang(value: str) -> str:
     if value != "auto":
         return value
@@ -63,9 +79,47 @@ def _recommend(root: Path, lang: str) -> int:
     return 0
 
 
+def _github_main(argv: list[str]) -> int:
+    args = github_parser().parse_args(argv)
+    lang = _lang(args.lang)
+    token = os.environ.get(args.token_env) if args.token_env else None
+    try:
+        zip_path, manifest = build_github_bundle(
+            repo=args.repo,
+            run_id=args.run_id,
+            output_dir=Path(args.output),
+            token=token,
+            max_log_chars=max(1_000, args.max_log_chars),
+        )
+    except Exception as exc:
+        msg = f"fixbundle github: paket oluşturulamadı: {exc}" if lang == "tr" else f"fixbundle github: failed: {exc}"
+        print(msg, file=sys.stderr)
+        return 1
+
+    if lang == "tr":
+        print("FixBundle GitHub kanıt paketi hazır [OK]")
+        print(f"  ZIP: {zip_path}")
+        print(f"  Repo: {manifest['repository']}")
+        print(f"  Run: {manifest['run_id']}")
+        print(f"  Başarısız job: {len(manifest['failed_jobs'])}")
+        print(f"  Gizleme/yol maskeleme: {manifest['redactions']}")
+    else:
+        print("FixBundle GitHub evidence bundle created [OK]")
+        print(f"  ZIP: {zip_path}")
+        print(f"  Repo: {manifest['repository']}")
+        print(f"  Run: {manifest['run_id']}")
+        print(f"  Failed jobs: {len(manifest['failed_jobs'])}")
+        print(f"  Redactions/path masks: {manifest['redactions']}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     _configure_stdio()
-    args = parser().parse_args(argv)
+    raw = list(sys.argv[1:] if argv is None else argv)
+    if raw and raw[0] == "github":
+        return _github_main(raw[1:])
+
+    args = parser().parse_args(raw)
     lang = _lang(args.lang)
     root = Path(args.project)
     if not root.exists() or not root.is_dir():
