@@ -37,6 +37,8 @@ jobs:
         run: python scripts/demo.py
       - name: OTLP production evidence demo
         run: python scripts/demo_otlp.py
+      - name: Cross-source compare demo
+        run: python scripts/demo_compare.py
 
   live-github-evidence:
     name: Live GitHub failure evidence
