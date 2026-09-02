@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.5.0 — 2026-09-02
+
+### Added
+- `fixbundle otlp --logs <file> [--traces <file>]` local production-evidence capture yolu.
+- OpenTelemetry Protocol File Exporter JSON Lines için `resourceLogs/scopeLogs/logRecords` ve `resourceSpans/scopeSpans/spans` normalization.
+- OTLP AnyValue + resource attribute normalization.
+- Exact `traceId` / `spanId` evidence correlation.
+- `service.name`, `service.version`, deployment environment/id ve telemetry SDK identity extraction.
+- Stable exception evidence: `exception.type`, `exception.message`, `exception.stacktrace`.
+- `--trace-id`, `--since`, `--until` bounded incident selection.
+- `production/{incident,logs,traces,exceptions,services}.json` evidence shape.
+- Selected/omitted input record provenance, `AI_HANDOFF.md` ve SHA-256 integrity.
+- `scripts/demo_otlp.py` yeniden üretilebilir production incident demo.
+
+### Safety / hardening
+- OTLP core local/offline çalışır; network veya account istemez ve automatic upload yapmaz.
+- Input absolute path'leri manifest'e serialize edilmez.
+- Input başına byte guard ve total normalized record guard eklendi.
+- Malformed JSONL, invalid time bounds, oversized input ve record overflow fail-closed davranır.
+- Telemetry text serialization öncesi mevcut secret/path redaction katmanından geçer.
+- Exact trace filter unrelated trace'leri sessizce evidence'e karıştırmaz.
+- GitHub collector User-Agent ve `fixbundle_version` artık package `__version__` kaynağından gelir.
+- Feature branch CI duplicate push + PR matrisleri kaldırıldı; branch PR bir kez, main push bir kez doğrulanır.
+
+### Verification
+- `tests/test_otlp.py`: exact trace selection, log/span correlation, exception normalization, service identity, unrelated-trace omission, secret redaction, checksums, malformed input, invalid time range ve record guard.
+- `tests/test_otlp_cli.py`: gerçek `fixbundle otlp` CLI subprocess capture.
+- `tests/test_otlp_limits.py`: oversized input fail-closed gate.
+- `scripts/demo_otlp.py`: `PaymentGatewayError`, `payments-api`, secret redaction ve 7 checksum için yeniden üretilebilir PASS zinciri.
+- v0.4 live GitHub failure evidence gate v0.5 CI içinde korunur.
+
 ## 0.4.0 — 2026-09-02
 
 ### Added
@@ -19,41 +50,21 @@
 - `--repo` strict `owner/repo` formatıyla doğrulanır.
 - Yalnız completed + failure run kabul edilir; belirsiz/in-progress run fail-closed davranır.
 - Failed-job logları karakter guard ile sınırlandırılır ve secret redactor'dan geçirilir.
-- Local bundle `system.json` paket sürümünü `__version__` üzerinden alır.
 
 ### Verified
 - Kaynak incident: GitHub Actions run `33587184675` / run #41.
 - Gerçek failure: üç Windows job, failed step `Historical demo`, log marker'ları `UnicodeEncodeError` + `cp1252`.
-- Live proof: GitHub Actions run `33589138174` / run #63, commit `d15385a7f9ecd0a0dbd1c67b0caad6f7aa21bb95`.
-- Live verifier: 3 failed job, 3 real log, failed-step identity, 9 checksum ve token-not-serialized gate'leri PASS.
-- Aynı proof run'da Ubuntu/Windows/macOS × Python 3.10/3.12/3.13 platform matrisi 9/9 PASS ve ayrı live GitHub evidence job PASS.
+- Live proof: GitHub Actions run `33589138174` / run #63.
+- Post-merge main proof: run `33589630906` / run #66, 9/9 platform matrix + live evidence job PASS.
 
 ## 0.3.0 — 2026-09-02
-
-### Added
-- `--commit <ref>` ile eski bir Git commit'ini izole, detached worktree içinde capture etme.
-- `incident.json`: requested ref, incident commit ve current HEAD kimliği.
-- Current vs incident commit ayrımını `manifest.json` içine taşıyan `fixbundle/0.3` schema.
-- `scripts/demo.py`: eski production commit'ini yeniden üreten gerçek, tek komutlu demo.
-- README içine gerçek demo transcript'inden üretilen animasyonlu SVG kanıtı.
-- Legacy Windows stdout encoding koşulunu yeniden üreten `tests/test_cli.py` regression testi.
-
-### Safety
-- Historical capture mevcut branch'i checkout etmez.
-- Commitlenmemiş çalışma alanı capture öncesi/sonrası karşılaştırılır.
-- Geçici worktree hata halinde de temizlenir.
-- Output klasörü workspace dirty-state karşılaştırmasından ayrıştırılır.
-- CLI stdout/stderr UTF-8 + replacement fallback ile yapılandırılarak legacy Windows code-page çökmesi giderildi.
-
-### Verified
-- Ubuntu, Windows ve macOS üzerinde Python 3.10 / 3.12 / 3.13 doğrulandı.
-- Historical demo 5/5 invariant PASS.
+- `--commit <ref>` ile isolated historical worktree capture.
+- Current workspace preservation ve gerçek historical failure demo.
+- Windows legacy stdout encoding regression fix.
 
 ## 0.2.0 — 2026-09-02
 - Node.js, Python, Rust, .NET, Go ve Java stack algılama.
-- `fixbundle --recommend` ile doğrulama komutu önerileri.
-- Türkçe/İngilizce CLI.
-- Git identity, stack evidence ve genişletilmiş redaction/path masking.
+- `fixbundle --recommend`, Türkçe/İngilizce CLI, Git identity ve genişletilmiş redaction.
 
 ## 0.1.0 — 2026-09-02
 - İlk local AI-ready diagnostic bundle prototipi.
