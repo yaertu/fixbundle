@@ -12,6 +12,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Iterable
 
+from . import __version__
 from .redact import redact_text
 from .stack import stacks_as_dicts
 
@@ -165,7 +166,7 @@ def build_bundle(
     redactions = 0
     stacks = stacks_as_dicts(root)
     system_info = {
-        "fixbundle_version": "0.3.0",
+        "fixbundle_version": __version__,
         "python": sys.version.split()[0],
         "platform": platform.platform(),
         "machine": platform.machine(),
