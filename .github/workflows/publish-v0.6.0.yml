@@ -1,0 +1,50 @@
+name: Publish v0.6.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-v0.6.0.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.repository == 'yaertu/fixbundle'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify release source
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          init = Path("src/fixbundle/__init__.py").read_text(encoding="utf-8")
+          pyproject = Path("pyproject.toml").read_text(encoding="utf-8")
+          assert '__version__ = "0.6.0"' in init
+          assert re.search(r'^version = "0\.6\.0"$', pyproject, re.MULTILINE)
+          assert Path("docs/releases/v0.6.0.md").is_file()
+          print("PASS release_source=v0.6.0")
+          PY
+
+      - name: Create GitHub release if missing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if gh release view v0.6.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "PASS release_exists=v0.6.0"
+            exit 0
+          fi
+
+          gh release create v0.6.0 \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "FixBundle v0.6.0 — Cross-source Evidence Compare" \
+            --notes-file docs/releases/v0.6.0.md
+
+          gh release view v0.6.0 --repo "$GITHUB_REPOSITORY" --json tagName,name,url
